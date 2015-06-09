@@ -1,3 +1,8 @@
+**Note:** These are the unformatted raw instructions for this lesson. If you
+want to present this as a lesson to students, please format it nicely yourself
+This lesson has not yet been added to my
+[teaching resources](http://samlanning.github.io/teaching-resources/) web
+pages.
 
 ## Getting Started
 

@@ -17,7 +17,7 @@ Once you have created the class, it should look like this:
     package adventure_game;
 
     public class Game {
-    
+
     }
 
 Inside the new class (between the curly brackets `{ }`), write the following:
@@ -47,7 +47,7 @@ called `UserInterface`. This new file should look like this:
     package adventure_game.ui;
 
     public interface UserInterface {
-    
+
     }
 
 **Note:** In particular, the package at the top of the file should say
@@ -57,7 +57,7 @@ wrong place, or created the package `ui` in the wrong place.
 Inside this new interface, write the following:
 
     public String getStringFromUser(String prompt);
-    
+
     public void sendTextToUser(String message);
 
 And make sure you save your changes.
@@ -95,12 +95,12 @@ look like this:
         @Override
         public void sendTextToUser(String message) {
             // TODO Auto-generated method stub
-        
+
         }
-    
+
     }
 
-Eclipse has now done its best to create code that fulfill the requirements of
+Eclipse has now done its best to create code that fulfills the requirements of
 the `UserInterface` interface. These **methods** that it has created, as it
 currently stands, do not do much. Lets change this.
 
@@ -134,7 +134,7 @@ look like this:
     import java.util.Scanner;
 
     public class CommandLineUserInterface implements UserInterface {
-        
+
         private final Scanner scanner = new Scanner(System.in);
 
         @Override
@@ -148,7 +148,7 @@ look like this:
         public void sendTextToUser(String message) {
             System.out.println(message);
         }
-    
+
     }
 
 **Note:** remember to hit `Ctrl + Shift + F` to reformat your code.
@@ -179,3 +179,127 @@ it asks for your name, like so:
     Welcome... Wait...
     What is your name? Bob Jenkins
     Welcome Bob Jenkins!
+
+## The Main Command Loop
+
+Our program is going to run in a loop, continuously asking the user for the
+next command that they wish to do. We will keep all of the logic for our game
+flow inside a new class `PlayerRunThrough`, which will represent a single run
+of the game, and keep track of a player's information using a class called
+`Player`.
+
+First create a new class called `Player` in the `adventure_game` package, and
+once this class is created, inside the curly braces, write the following:
+
+    private final String name;
+
+    public Player(String name){
+        this.name = name;
+    }
+
+    public String getName(){
+        return name;
+    }
+
+Let's examine this new code section, by, section.
+
+    private final String name;
+
+The first line of this code says that every instance of `Player` has a property
+called `name` that is a string. This property is `private` (meaning that only
+code inside the `Player` class can see it), and `final`, which means once it is
+set it can't be changed.
+
+    public Player(String name){
+        this.name = name;
+    }
+
+This code is what is called the constructor, it is a special kind of
+**method** that is called only when we create a new instance of a `Person`. You
+can tell that it is a constructor because it has **the same name as the
+class**. This constructor takes a `String` parameter called `name`, which is
+stores as the property `name`.
+
+    public String getName(){
+        return name;
+    }
+
+This final piece of code is also a **method**. This method fetches the
+`private` field `name` and returns it, effectively making it available to code
+**outside** of the `Person` class.
+
+Create a new class called `PlayerRunThrough` inside the package
+`adventure_game`, and inside this new class write the following:
+
+    public static void performRunThrough(UserInterface iface, Player player){
+        iface.sendTextToUser("Starting Game...");
+        iface.sendTextToUser("Welcome " + player.getName());
+
+
+    }
+
+`UserInterface` will be underlined because it is not yet imported. Like before,
+hover over it and select the option that begins `Import ...`.
+
+Now we will use these two new classes in the main `Game` class.
+
+Switch back to `Game.java` and **remove** the lines that say:
+
+    iface.sendTextToUser("Welcome... Wait...");
+    String name = iface.getStringFromUser("What is your name?");
+    iface.sendTextToUser("Welcome " + name + "!");
+
+And instead **write** the following:
+
+    String name = iface.getStringFromUser("What is your name?");
+
+    Player player = new Player(name);
+    PlayerRunThrough.performRunThrough(iface, player);
+
+    iface.sendTextToUser("Game finished");
+
+When running your game, you should now get something that looks like this:
+
+    What is your name? Bob
+    Starting Game...
+    Welcome Bob
+    Game finished
+
+Lets go back to `PlayerRunThrough.java`. This class does not do much currently,
+so lets make it more interesting and introduce the main command loop.
+
+Under the existing code inside your method `performRunThrough()`, write the
+following:
+
+    while(true){
+        String line = iface.getStringFromUser("> ");
+
+        if(line.equals("exit")){
+            return;
+        } else if(line.equals("help")){
+            iface.sendTextToUser("  Commands:");
+            iface.sendTextToUser("   - help: show this message");
+            iface.sendTextToUser("   - exit: end the game");
+
+        } else {
+            iface.sendTextToUser("Unrecognized Command! type: help");
+        }
+
+    }
+
+Try running yor program now, when your game starts you should be able to enter
+in a number of commands. It might look like so:
+
+    What is your name? Bob
+    Starting Game...
+    Welcome Bob
+    Type help to get started
+    >  help
+      Commands:
+       - help: show this message
+       - exit: end the game
+    >  walk
+    Unrecognized Command! type: help
+    >  exit
+    Game finished
+

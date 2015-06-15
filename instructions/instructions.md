@@ -276,15 +276,16 @@ following:
 
         if(line.equals("exit")){
             return;
-        } else if(line.equals("help")){
+        }
+
+        if(line.equals("help")){
             iface.sendTextToUser("  Commands:");
             iface.sendTextToUser("   - help: show this message");
             iface.sendTextToUser("   - exit: end the game");
-
-        } else {
-            iface.sendTextToUser("Unrecognized Command! type: help");
+            continue;
         }
 
+        iface.sendTextToUser("Unrecognized Command! type: help");
     }
 
 Try running yor program now, when your game starts you should be able to enter
@@ -303,3 +304,232 @@ in a number of commands. It might look like so:
     >  exit
     Game finished
 
+## Creating a Map
+
+The next stage for our game is building up a map and allowing the player to
+move around!
+
+Create a new package `map` inside the package `adventure_game`. And inside this
+package, create two new classes, called `Location` and `Map`.
+
+Inside the body of the `Location` class (that's between the curly brackets),
+write the following:
+
+    public final String name;
+    private String description;
+
+    public Location north;
+    public Location east;
+    public Location south;
+    public Location west;
+
+    public Location(String name){
+        this.name = name;
+    }
+
+    public void setDescription(String description){
+        this.description = description;
+    }
+
+    public String getDescription(){
+        return this.description;
+    }
+
+And inside the body of the `Map` class, write the following:
+
+    private final Location startLocation;
+
+    public Map() {
+
+        // Create Locations
+
+        Location villageSquare = new Location("The Village Square");
+        villageSquare.setDescription("I think ball games are banned here?");
+        this.startLocation = villageSquare;
+
+        Location waterfall = new Location("The Village Waterfall");
+        waterfall.setDescription("I love listening to the sound of the water");
+
+        Location caves = new Location("The Caves");
+        caves.setDescription("It's kinda strange that we have caves in such a small village");
+
+        // Join Locations Together
+        joinLocationsVertically(waterfall, villageSquare);
+        joinLocationsHorizontally(waterfall, caves);
+    }
+
+    private void joinLocationsHorizontally(Location west, Location east){
+        east.west = west;
+        west.east = east;
+    }
+
+    private void joinLocationsVertically(Location north, Location south){
+        north.south = south;
+        south.north = north;
+    }
+
+    public Location getStartLocation() {
+        return startLocation;
+    }
+
+We now have a map with 3 locations within it which we can start to explore with
+our game.
+
+## Looking Around and Moving Around the Map
+
+Go back to `PlayerRunThrough.java`, and make the following changes:
+
+* **Above the while loop:** write this:
+
+        Map map = new Map();
+        Location currentLocation = map.getStartLocation();
+
+* **Inside the code that writes the help message:** add these extra two lines:
+
+        iface.sendTextToUser("   - look around: inspect the area around you");
+        iface.sendTextToUser("   - move: move your character");
+
+  These help messages will be for the two extra commands we are about to add.
+
+* **Inside the while loop, after the last `if` statement**, write the
+  following:
+
+        if(line.equals("look around")){
+            lookAround(iface, currentLocation);
+            continue;
+        }
+
+* **After the `performRunThrough()` method**, write this:
+
+        private static void lookAround(UserInterface iface, Location location){
+            // Talk about current location
+            iface.sendTextToUser("  You Look around...");
+            iface.sendTextToUser("  You are at " + location.name);
+            String description = location.getDescription();
+            if(description != null)
+                iface.sendTextToUser("    '" + description + "'");
+
+            // Describe the locations around you.
+            if(location.north != null)
+                iface.sendTextToUser("  North of you is: " + location.north.name);
+            if(location.east != null)
+                iface.sendTextToUser("  East of you is: " + location.east.name);
+            if(location.south != null)
+                iface.sendTextToUser("  South of you is: " + location.south.name);
+            if(location.west != null)
+                iface.sendTextToUser("  West of you is: " + location.west.name);
+        }
+
+### Test The Code So Far
+
+Run the code, and you should now be able to inspect the map around you *(but
+not yet move around!)*. For example:
+
+    What is your name? Bob
+    Starting Game...
+    Welcome Bob
+    Type help to get started
+    >  help
+      Commands:
+       - help: show this message
+       - exit: end the game
+       - look around: inspect the area around you
+       - move: move your character
+    >  look around
+      You Look around...
+      You are at The Village Square
+        'I think ball games are banned here?'
+      North of you is: The Village Waterfall
+    >  move
+    Unrecognized Command! type: help
+    >  exit
+    Game finished
+
+### Add Movement
+
+Now to add the ability to move around the map, **inside the while loop, after
+the if statement you wrote in the last step**, write the following:
+
+    if(line.equals("moves")){
+        String direction =  iface.getStringFromUser("  Enter a Direction (n,e,s,w) > ");
+
+        if(direction.equals("n")){
+            if(currentLocation.north != null)
+                currentLocation = currentLocation.north;
+            else
+                iface.sendTextToUser("There is nothing north of you");
+            continue;
+        }
+
+        if(direction.equals("e")){
+            if(currentLocation.east != null)
+                currentLocation = currentLocation.east;
+            else
+                iface.sendTextToUser("There is nothing east of you");
+            continue;
+        }
+
+        if(direction.equals("s")){
+            if(currentLocation.south != null)
+                currentLocation = currentLocation.south;
+            else
+                iface.sendTextToUser("There is nothing south of you");
+            continue;
+        }
+
+        if(direction.equals("w")){
+            if(currentLocation.west != null)
+                currentLocation = currentLocation.west;
+            else
+                iface.sendTextToUser("There is nothing west of you");
+            continue;
+        }
+
+        iface.sendTextToUser("Unregognized Direction!");
+        continue;
+    }
+
+### Test Moving Around
+
+You should now be able to move your player around the map, try testing your
+code and exploring the map.
+
+    What is your name? Bob
+    Starting Game...
+    Welcome Bob
+    Type help to get started
+    >  help
+      Commands:
+       - help: show this message
+       - exit: end the game
+       - look around: inspect the area around you
+       - move: move your character
+    >  look around
+      You Look around...
+      You are at The Village Square
+        'I think ball games are banned here?'
+      North of you is: The Village Waterfall
+    >  move
+      Enter a Direction (n,e,s,w) >  x
+    Unregognized Direction!
+    >  move
+      Enter a Direction (n,e,s,w) >  n
+    >  look around
+      You Look around...
+      You are at The Village Waterfall
+        'I love listening to the sound of the water'
+      East of you is: The Caves
+      South of you is: The Village Square
+    >  exit
+    Game finished
+
+## Making Your Own Map
+
+Now it's time to get creative!
+
+Use your imagination to create a much bigger map that you can explore using
+the commands that we have just created.
+
+You need to edit the file `Map.java` to do this, all the code for creating the
+locations of the map is in the **constructor** (the **method** that has the
+same name as the class).

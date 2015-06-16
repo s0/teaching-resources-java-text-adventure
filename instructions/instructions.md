@@ -533,3 +533,149 @@ the commands that we have just created.
 You need to edit the file `Map.java` to do this, all the code for creating the
 locations of the map is in the **constructor** (the **method** that has the
 same name as the class).
+
+## Cleaning Up the Code
+
+In preparation to making your game more advanced, we should tidy up some parts
+so that it makes this easier. Luckily, because Java has software like eclipse
+to help you write it, this is made much easier as it can quickly point out
+problems with your code and makes moving things around simpler.
+
+* In `PlayerRunThrough.java`, **above the method `performRunThrough()`**, write
+  the following:
+
+        private final UserInterface iface;
+        private final Player player;
+        private final Map map;
+        private Location currentLocation;
+
+        public PlayerRunThrough(UserInterface iface, Player player){
+            this.iface = iface;
+            this.player = player;
+
+            map = new Map();
+            currentLocation = map.getStartLocation();
+        }
+
+* Next delete both the parameters from the method `performRunThrough()`, and
+  remove the `static` keyword, this should result in a line that looks like
+  this:
+
+        public void performRunThrough(){
+
+* Then, delete the two lines of code shortly afterwards that look like this:
+
+        Map map = new Map();
+        Location currentLocation = map.getStartLocation();
+
+* Delete the two parameters for the method `lookAround()` and remove the
+  `static` keyword, this should introduce a few errors:
+
+  * For the errors below the line you just changed, replace anywhere it says
+    `location` with `currentLocation`.
+
+  * For the error that was introduced above this line, in the method
+    `performRunThrough()` (you can see where the errors are by looking for the
+    red markers in the scrollbar), change the line from:
+
+        lookAround(iface, currentLocation);
+
+    to:
+
+        lookAround();
+
+### Extracting a Method
+
+We are now going to move and modify code that is inside the
+`performRunThrough()` method, and extract it to another method.
+
+**After the method `lookAround()`**, write the following:
+
+**Note:** This code is mostly similar to code already in your method
+`performRunThrough()`, so it will be easier to copy and paste the code instead
+of writing it from scratch.
+
+    private void move() {
+        String direction = iface.getStringFromUser("  Enter a Direction (n,e,s,w) > ");
+
+        if (direction.equals("n")) {
+            if (currentLocation.north != null)
+                currentLocation = currentLocation.north;
+            else
+                iface.sendTextToUser("There is nothing north of you");
+            return;
+        }
+
+        if (direction.equals("e")) {
+            if (currentLocation.east != null)
+                currentLocation = currentLocation.east;
+            else
+                iface.sendTextToUser("There is nothing east of you");
+            return;
+        }
+
+        if (direction.equals("s")) {
+            if (currentLocation.south != null)
+                currentLocation = currentLocation.south;
+            else
+                iface.sendTextToUser("There is nothing south of you");
+            return;
+        }
+
+        if (direction.equals("w")) {
+            if (currentLocation.west != null)
+                currentLocation = currentLocation.west;
+            else
+                iface.sendTextToUser("There is nothing west of you");
+            return;
+        }
+
+        iface.sendTextToUser("Unregognized Direction!");
+    }
+
+**In the methos `performRunThrough()`**, find the **if statement** that is used
+for when we type in the command `move`, and **replace it** with the following
+code:
+
+    if (line.equals("move")) {
+        move();
+        continue;
+    }
+
+### Try To Run Your Code
+
+If you try to run your code, it should not work. It will instead give a message
+like "Errors exist in required project(s)", and if you continue regardless, you
+may get a message like this:
+
+    Exception in thread "main" java.lang.Error: Unresolved compilation problem:
+        The method performRunThrough() in the type PlayerRunThrough is not applicable for the arguments (UserInterface, Player)
+
+        at adventure_game.Game.main(Game.java:14)
+
+This is because we modified the way in which you have to use the class
+`PlayerRunThrough`, and didn't update the parts of the code that use it.
+
+Lets fix this...
+
+### Fixing The Compilation Problem
+
+If you look at your list of files **on your left** (under `Package Explorer`),
+you should be able to see a red cross on the file `Game.java`, that means there
+is a compilation error there.
+
+Open the file and you will see the line where the problem is, lets fix that
+line.
+
+Replace the line:
+
+    PlayerRunThrough.performRunThrough(iface, player);
+
+With:
+
+    new PlayerRunThrough(iface, player).performRunThrough();
+
+### Running The Game
+
+After running the game, it should work exactly as before, even though we
+changed a lot of code (because we made sure we kept the same functionality).

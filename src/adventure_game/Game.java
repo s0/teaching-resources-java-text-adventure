@@ -11,7 +11,7 @@ public class Game {
         String name = iface.getStringFromUser("What is your name?");
         
         Player player = new Player(name);
-        PlayerRunThrough.performRunThrough(iface, player);
+        new PlayerRunThrough(iface, player).performRunThrough();
             
         iface.sendTextToUser("Game finished");
     }
